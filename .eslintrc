@@ -1,0 +1,8 @@
+{
+  "linebreak-style": ["error", "windows"],
+  "rules": {
+    "no-underscore-dangle": "off",
+    "no-param-reassign": "off"
+  },
+  "extends": "airbnb-base"
+}
