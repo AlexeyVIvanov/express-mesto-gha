@@ -23,10 +23,9 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.createCard = (req, res) => {
-  const userId = req.user._id;
   const { name, link } = req.body;
   // записываем данные в базу
-  Card.create(userId, { name, link }, { runValidators: true })
+  Card.create({ name, link })
     // возвращаем записанные в базу данные пользователю
     .then(card => res.send({ data: card }))
     // если данные не записались, вернём ошибку
