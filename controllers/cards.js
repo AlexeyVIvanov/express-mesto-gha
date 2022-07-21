@@ -18,8 +18,18 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-      .then(card => res.send({ data: card }))
-      .catch(err => res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" }));
+  .then(user => {
+    if(!user) {
+      res.status(ERR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+    }
+    res.send({ data: user })
+  })
+  .catch(err => {
+    if(err.name === "CastError") {
+      return res.status(ERROR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+    }
+    res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" })
+  });
 };
 
 module.exports.createCard = (req, res) => {
@@ -42,13 +52,33 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
   { new: true },
 )
-    .then(card => res.send({ data: card }))
-    .catch(err => res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" }));
+.then(user => {
+  if(!user) {
+    res.status(ERR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+  }
+  res.send({ data: user })
+})
+.catch(err => {
+  if(err.name === "CastError") {
+    return res.status(ERROR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+  }
+  res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" })
+});
 
 module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   req.params.cardId,
   { $pull: { likes: req.user._id } }, // убрать _id из массива
   { new: true },
 )
-    .then(card => res.send({ data: card }))
-    .catch(err => res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" }));
+.then(user => {
+  if(!user) {
+    res.status(ERR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+  }
+  res.send({ data: user })
+})
+.catch(err => {
+  if(err.name === "CastError") {
+    return res.status(ERROR_CODE).send({ message: "Запрашиваемый пользователь не найден" });
+  }
+  res.status(ERRORCODE).send({ message: "Запрашиваемый пользователь не найден" })
+});
