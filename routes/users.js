@@ -17,14 +17,14 @@ router.patch('/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
-    email: Joi.string().required().unique(true).email(),
+    email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
 }), updateProfile);
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().url(),
-    email: Joi.string().required().unique(true).email(),
+    avatar: Joi.string().required(),
+    email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
 }), updateAvatar);
