@@ -1,59 +1,83 @@
+const bcrypt = require('bcryptjs');
+
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 
-const ERROR_CODE = 400;
-const ERR_CODE = 404;
-const ERRORCODE = 500;
+const ConflictError = require('../utils/errors/conflict');
 
-module.exports.getUsers = (req, res) => {
+const NotFoundError = require('../utils/errors/not-found');
+
+const UnauthorizedError = require('../utils/errors/unauthorized');
+
+const ERROR_CODE = 400;
+const UnauthorizedErrorCode = 401;
+
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((user) => res.send({ data: user }))
-    .catch(() => res
-      .status(ERRORCODE)
-      .send({ message: 'Внутренняя ошибка сервера' }));
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId)
+module.exports.getUsersMe = (req, res, next) => {
+  User.find(req.params.user)
     .then((user) => {
       if (!user) {
-        res
-          .status(ERR_CODE)
-          .send({ message: 'Запрашиваемый пользователь не найден' });
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       }
       res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
+        res
           .status(ERROR_CODE)
           .send({ message: 'Неверный запрос' });
       }
-      return res
-        .status(ERRORCODE)
-        .send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      res.send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(ERROR_CODE)
+          .send({ message: 'Неверный запрос' });
+      }
+      next(err);
+    });
+};
+
+module.exports.createUser = (req, res, next) => {
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      email: req.body.email,
+      password: hash, // записываем хеш в базу
+    }))
+  // const { name, about, avatar } = req.body;
   // записываем данные в базу
-  User.create({ name, about, avatar })
+  // User.create({ name, about, avatar })
     // возвращаем записанные в базу данные пользователю
     .then((user) => res.send({ data: user }))
     // если данные не записались, вернём ошибку
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
+        res
           .status(ERROR_CODE)
           .send({ message: 'Неверный запрос' });
       }
-      return res
-        .status(ERRORCODE)
-        .send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const userId = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(userId, { name, about }, {
@@ -63,17 +87,15 @@ module.exports.updateProfile = (req, res) => {
     .then(() => res.send({ name, about }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
+        res
           .status(ERROR_CODE)
           .send({ message: 'Неверный запрос' });
       }
-      return res
-        .status(ERRORCODE)
-        .send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const userId = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(userId, { avatar }, {
@@ -83,12 +105,49 @@ module.exports.updateAvatar = (req, res) => {
     .then(() => res.send({ avatar }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
+        res
           .status(ERROR_CODE)
           .send({ message: 'Неверный запрос' });
       }
-      return res
-        .status(ERRORCODE)
-        .send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findOne({ email }).select('+password')
+    .then((err) => {
+      if (err.code === 11000) {
+        throw new ConflictError('Пользователь с таким email уже зарегистрирован');
+      }
+    })
+    .then((user) => {
+      if (!user) {
+        // пользователь не найден — отклоняем промис
+        // с ошибкой и переходим в блок catch
+        throw new UnauthorizedError('Неправильные почта или пароль');
+      }
+      // сравниваем переданный пароль и хеш из базы
+      return bcrypt.compare(password, user.password, () => {
+        // создадим токен
+        const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+        // вернём токен
+        res.send({ token });
+      });
+    })
+    .then((matched) => {
+      if (!matched) {
+        // хеши не совпали — отклоняем промис
+        throw new UnauthorizedError('Неправильные почта или пароль');
+      }
+      // аутентификация успешна
+      return res.send({ message: 'Всё верно!' });
+    })
+    .catch(() => {
+      // возвращаем ошибку аутентификации
+      res
+        .status(UnauthorizedErrorCode)
+        .send({ message: 'Неправильные почта или пароль' });
+    });
+  next();
 };
