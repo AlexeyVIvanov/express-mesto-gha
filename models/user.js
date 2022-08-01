@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const isEmail = require('validator/lib/isEmail');
 
-const regex = /^(https|http):\/\/(www\.)?[\w+\-._~:/?#[\]!$&'()*+,;=]+/gi;
+const regex = /^(https|http):\/\/(www\.)?[\w+\-._~:/?#[\]!$&'()*+,;=]+$/i;
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -47,3 +47,4 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('user', userSchema);
+module.exports = regex;
