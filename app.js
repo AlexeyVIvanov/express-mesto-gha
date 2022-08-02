@@ -4,13 +4,13 @@ const mongoose = require('mongoose');
 
 const bodyParser = require('body-parser');
 
-const { errors, celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 
 const { login, createUser } = require('./controllers/users');
 
-const regex = require('./models/user');
+const { userSchemaValidate } = require('./utils/celebrate/celebrate');
 
-const auth = require('./middlewares/auth');
+const { auth } = require('./middlewares/auth');
 
 const NotFoundError = require('./utils/errors/not-found');
 
@@ -24,24 +24,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(regex),
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(regex),
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
-  }),
-}), createUser);
+app.post('/signin', userSchemaValidate, login);
+app.post('/signup', userSchemaValidate, createUser);
 
 app.use('/users', auth, require('./routes/users'));
 
