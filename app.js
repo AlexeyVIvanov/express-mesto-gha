@@ -27,9 +27,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.post('/signin', userSchemaValidate, login);
 app.post('/signup', userSchemaValidate, createUser);
 
-app.use('/users', auth, require('./routes/users'));
+app.use(auth);
 
-app.use('/cards', auth, require('./routes/cards'));
+app.use('/users', require('./routes/users'));
+
+app.use('/cards', require('./routes/cards'));
 
 app.use('/', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
