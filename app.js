@@ -8,7 +8,7 @@ const { errors } = require('celebrate');
 
 const { login, createUser } = require('./controllers/users');
 
-const { userSchemaValidate } = require('./utils/celebrate/celebrate');
+const { userSchemaValidate, loginValidate } = require('./utils/celebrate/celebrate');
 
 const { auth } = require('./middlewares/auth');
 
@@ -24,14 +24,12 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
-app.post('/signin', userSchemaValidate, login);
+app.post('/signin', loginValidate, login);
 app.post('/signup', userSchemaValidate, createUser);
 
-app.use(auth);
+app.use('/users', auth, require('./routes/users'));
 
-app.use('/users', require('./routes/users'));
-
-app.use('/cards', require('./routes/cards'));
+app.use('/cards', auth, require('./routes/cards'));
 
 app.use('/', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));

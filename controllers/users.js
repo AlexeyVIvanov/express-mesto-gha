@@ -56,10 +56,14 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
+  const { name, about, avatar } = req.body;
   bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
       email: req.body.email,
       password: hash, // записываем хеш в базу
+      name,
+      about,
+      avatar,
     }))
   // const { name, about, avatar } = req.body;
   // записываем данные в базу
@@ -128,12 +132,13 @@ module.exports.login = (req, res, next) => {
         throw new UnauthorizedError('Неправильные почта или пароль');
       }
       // сравниваем переданный пароль и хеш из базы
-      return bcrypt.compare(password, user.password, () => {
-        // создадим токен
-        const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-        // вернём токен
-        res.send({ token });
-      });
+      return bcrypt.compare(password, user.password);
+    })
+    .then((user) => {
+      // создадим токен
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      // вернём токен
+      res.send({ token });
     })
     .then((matched) => {
       if (!matched) {

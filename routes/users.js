@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-const { userSchemaValidate } = require('../utils/celebrate/celebrate');
+const { userSchemaValidate, profileSchemaValidate, avatarSchemaValidate } = require('../utils/celebrate/celebrate');
 
 const {
   getUsers,
@@ -12,8 +12,8 @@ const {
 
 router.get('/', getUsers);
 router.get('/:userId', userSchemaValidate, getUser);
-router.get('/me', userSchemaValidate, getUsersMe);
-router.patch('/me', userSchemaValidate, updateProfile);
-router.patch('/me/avatar', userSchemaValidate, updateAvatar);
+router.get('/me', getUsersMe);
+router.patch('/me', profileSchemaValidate, updateProfile);
+router.patch('/me/avatar', avatarSchemaValidate, updateAvatar);
 
 module.exports = router;
