@@ -4,14 +4,14 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-const ConflictError = require('../utils/errors/conflict');
+// const ConflictError = require('../utils/errors/conflict');
 
 const NotFoundError = require('../utils/errors/not-found');
 
 const UnauthorizedError = require('../utils/errors/unauthorized');
 
 const ERROR_CODE = 400;
-const UnauthorizedErrorCode = 401;
+// const UnauthorizedErrorCode = 401;
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -69,7 +69,12 @@ module.exports.createUser = (req, res, next) => {
   // записываем данные в базу
   // User.create({ name, about, avatar })
     // возвращаем записанные в базу данные пользователю
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send({
+      email: user.email,
+      name,
+      about,
+      avatar,
+    }))
     // если данные не записались, вернём ошибку
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -120,11 +125,11 @@ module.exports.updateAvatar = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email }).select('+password')
-    .then((err) => {
-      if (err.code === 11000) {
-        throw new ConflictError('Пользователь с таким email уже зарегистрирован');
-      }
-    })
+    // .then((err) => {
+    //  if (err.code === 11000) {
+    //    throw new ConflictError('Пользователь с таким email уже зарегистрирован');
+    //  }
+    // })
     .then((user) => {
       if (!user) {
         // пользователь не найден — отклоняем промис
@@ -132,27 +137,30 @@ module.exports.login = (req, res, next) => {
         throw new UnauthorizedError('Неправильные почта или пароль');
       }
       // сравниваем переданный пароль и хеш из базы
-      return bcrypt.compare(password, user.password);
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+          // хеши не совпали — отклоняем промис
+            throw new UnauthorizedError('Неправильные почта или пароль');
+          }
+          // хеши совпали - возвращаем пользователя
+          return user;
+        });
     })
     .then((user) => {
+      // аутентификация успешна
+      // res.send({ message: 'Всё верно!' });
       // создадим токен
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // вернём токен
-      res.send({ token });
+      res.send({ token }, { message: 'Всё верно!' });
     })
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        throw new UnauthorizedError('Неправильные почта или пароль');
-      }
-      // аутентификация успешна
-      return res.send({ message: 'Всё верно!' });
-    })
-    .catch(() => {
-      // возвращаем ошибку аутентификации
-      res
-        .status(UnauthorizedErrorCode)
-        .send({ message: 'Неправильные почта или пароль' });
-    });
-  next();
+    .catch(next);
+  // .catch(() => {
+  // возвращаем ошибку аутентификации
+  //   res
+  //     .status(UnauthorizedErrorCode)
+  //    .send({ message: 'Неправильные почта или пароль' });
+  // });
+  // next();
 };

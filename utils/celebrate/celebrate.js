@@ -1,6 +1,6 @@
 const { celebrate, Joi } = require('celebrate');
 
-const regex = require('../../models/user');
+const regex = /^(https|http):\/\/(www\.)?[\w+\-._~:/?#[\]!$&'()*+,;=]+$/i;
 
 const userSchemaValidate = celebrate({
   body: Joi.object().keys({
@@ -12,24 +12,28 @@ const userSchemaValidate = celebrate({
   }),
 });
 
+const userIdSchemaValidate = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
+  }),
+});
+
 const cardSchemaValidate = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     link: Joi.string(),
-    owner: Joi.string().required(),
   }),
 });
 
 const likeSchemaValidate = celebrate({
-  body: Joi.object().keys({
-    owner: Joi.string().required(),
-    likes: Joi.array().default([]),
+  params: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
   }),
 });
 
 const cardDeleteSchemaValidate = celebrate({
-  body: Joi.object().keys({
-    owner: Joi.string().required(),
+  params: Joi.object().keys({
+    cardId: Joi.string().alphanum().length(24),
   }),
 });
 
@@ -55,10 +59,12 @@ const avatarSchemaValidate = celebrate({
 
 module.exports = {
   userSchemaValidate,
+  userIdSchemaValidate,
   cardSchemaValidate,
   likeSchemaValidate,
   cardDeleteSchemaValidate,
   loginValidate,
   profileSchemaValidate,
   avatarSchemaValidate,
+  regex,
 };
