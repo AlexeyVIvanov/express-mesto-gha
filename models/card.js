@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const { regex } = require('../utils/celebrate/celebrate');
+
 const { ObjectId } = mongoose.Schema;
 
 const cardSchema = new mongoose.Schema({
@@ -13,6 +15,10 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => regex.test(v),
+      message: 'Неверный формат',
+    },
     default: 'https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg',
   },
   owner: {

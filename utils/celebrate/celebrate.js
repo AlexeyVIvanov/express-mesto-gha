@@ -14,26 +14,26 @@ const userSchemaValidate = celebrate({
 
 const userIdSchemaValidate = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().length(24),
+    userId: Joi.string().length(24).hex().required(),
   }),
 });
 
 const cardSchemaValidate = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    link: Joi.string(),
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required().pattern(regex),
   }),
 });
 
 const likeSchemaValidate = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().alphanum().length(24),
+    cardId: Joi.string().length(24).hex().required(),
   }),
 });
 
 const cardDeleteSchemaValidate = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().alphanum().length(24),
+    cardId: Joi.string().length(24).hex().required(),
   }),
 });
 

@@ -19,13 +19,13 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const owner = req.user._id;
-  Card.find(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
-      if (card.userId !== owner) {
+      if (owner !== card.owner.toString()) {
         throw new UnauthorizedError('У вас нет прав на удаление карточки');
       }
       // return Card.deleteOne(card)
-      Card.findByIdAndRemove(req.params.cardId)
+      return Card.findByIdAndRemove(req.params.cardId)
         .then(() => {
           res.send({ data: card });
         });

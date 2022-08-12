@@ -20,7 +20,7 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.getUsersMe = (req, res, next) => {
-  User.find(req.params.user)
+  User.findById(req.user._id)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Запрашиваемый пользователь не найден');
@@ -77,6 +77,12 @@ module.exports.createUser = (req, res, next) => {
     }))
     // если данные не записались, вернём ошибку
     .catch((err) => {
+      if (err.code === 11000) {
+        res
+          .status(409)
+          .send({ message: 'Пользователь с таким email уже зарегистрирован' });
+        //    throw new ConflictError('Пользователь с таким email уже зарегистрирован');
+      }
       if (err.name === 'ValidationError') {
         res
           .status(ERROR_CODE)
