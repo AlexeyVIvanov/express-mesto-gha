@@ -38,7 +38,6 @@ app.use('/', (req, res, next) => {
 app.use(errors()); // обработчик ошибок celebrate
 
 app.use((err, req, res, next) => {
-  console.log(err);
   // если у ошибки нет статуса, выставляем 500
   const { statusCode = 500, message } = err;
   res
@@ -52,7 +51,4 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(PORT, () => {
-  // Если всё работает, консоль покажет, какой порт приложение слушает
-  console.log(`App listening on port ${PORT}`);
-});
+app.listen(PORT);

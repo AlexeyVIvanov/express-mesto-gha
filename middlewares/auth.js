@@ -16,13 +16,11 @@ module.exports.auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'some-secret-key');
   } catch (e) {
-    // const err = new Error('Необходима авторизация');
-    // err.statusCode = UnauthorizedErrorCode;
     res
       .status(UnauthorizedErrorCode)
       .send({ message: 'Необходима авторизация' });
 
-    // next(err); // пропускаем запрос дальше
+    // пропускаем запрос дальше
   }
   req.user = payload; // записываем пейлоуд в объект запроса
   next(); // ???????????

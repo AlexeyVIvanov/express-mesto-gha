@@ -2,7 +2,7 @@ const Card = require('../models/card');
 
 const NotFoundError = require('../utils/errors/not-found');
 
-const UnauthorizedError = require('../utils/errors/unauthorized');
+const ForbiddenError = require('../utils/errors/forbidden');
 
 const ERROR_CODE = 400;
 
@@ -19,27 +19,20 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const owner = req.user._id;
-  Card.findById(req.params.cardId)
+  const { cardId } = req.params;
+  Card.findById(cardId)
     .then((card) => {
-      if (owner !== card.owner.toString()) {
-        throw new UnauthorizedError('У вас нет прав на удаление карточки');
+      if (!card) {
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
-      // return Card.deleteOne(card)
-      return Card.findByIdAndRemove(req.params.cardId)
+      if (owner !== card.owner._id.toString()) {
+        throw new ForbiddenError('У вас нет прав на удаление карточки');
+      }
+      return Card.deleteOne(card)
         .then(() => {
           res.send({ data: card });
         });
     })
-
-  // Card.findByIdAndRemove(req.params.cardId)
-  //  .then((user) => {
-  //    if (!user) {
-  //      res
-  //        .status(ERR_CODE)
-  //        .send({ message: 'Запрашиваемая карточка не найдена' });
-  //    }
-  //    res.send({ data: user });
-  //  })
     .catch((err) => {
       if (err.name === 'CastError') {
         res

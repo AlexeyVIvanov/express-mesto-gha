@@ -65,10 +65,6 @@ module.exports.createUser = (req, res, next) => {
       about,
       avatar,
     }))
-  // const { name, about, avatar } = req.body;
-  // записываем данные в базу
-  // User.create({ name, about, avatar })
-    // возвращаем записанные в базу данные пользователю
     .then((user) => res.send({
       email: user.email,
       name: user.name,
@@ -131,11 +127,6 @@ module.exports.updateAvatar = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email }).select('+password')
-    // .then((err) => {
-    //  if (err.code === 11000) {
-    //    throw new ConflictError('Пользователь с таким email уже зарегистрирован');
-    //  }
-    // })
     .then((user) => {
       if (!user) {
         // пользователь не найден — отклоняем промис
@@ -160,15 +151,6 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // вернём токен
       res.send({ token });
-      // , { message: 'Всё верно!' }
-      // );
     })
     .catch(next);
-  // .catch(() => {
-  // возвращаем ошибку аутентификации
-  //   res
-  //     .status(UnauthorizedErrorCode)
-  //    .send({ message: 'Неправильные почта или пароль' });
-  // });
-  // next();
 };
