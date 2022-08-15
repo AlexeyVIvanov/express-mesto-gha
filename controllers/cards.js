@@ -4,7 +4,7 @@ const NotFoundError = require('../utils/errors/not-found');
 
 const ForbiddenError = require('../utils/errors/forbidden');
 
-const ERROR_CODE = 400;
+const BadRequestError = require('../utils/errors/bad-request');
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -35,23 +35,24 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(ERROR_CODE)
-          .send({ message: 'Неверный запрос' });
+        next(new BadRequestError('Неверный запрос'));
       }
       next(err);
     });
 };
 
 module.exports.createCard = (req, res, next) => {
+  const { name, link } = req.body;
   const owner = req.user._id;
-  Card.create({ owner })
-    .then((card) => res.send({ data: card }))
+  Card.create({ name, link, owner })
+    .then((card) => res.send({
+      name: card.name,
+      link: card.link,
+      owner,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_CODE)
-          .send({ message: 'Неверный запрос' });
+        next(new BadRequestError('Неверный запрос'));
       }
       next(err);
     });
@@ -70,9 +71,7 @@ module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   })
   .catch((err) => {
     if (err.name === 'CastError') {
-      res
-        .status(ERROR_CODE)
-        .send({ message: 'Неверный запрос' });
+      next(new BadRequestError('Неверный запрос'));
     }
     next(err);
   });
@@ -90,9 +89,7 @@ module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   })
   .catch((err) => {
     if (err.name === 'CastError') {
-      res
-        .status(ERROR_CODE)
-        .send({ message: 'Неверный запрос' });
+      next(new BadRequestError('Неверный запрос'));
     }
     next(err);
   });
