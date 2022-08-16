@@ -31,8 +31,9 @@ module.exports.getUsersMe = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -47,8 +48,9 @@ module.exports.getUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -72,11 +74,11 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.code === 11000) {
         next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
-      }
-      if (err.name === 'ValidationError') {
+      } else if (err.name === 'ValidationError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -91,8 +93,9 @@ module.exports.updateProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -107,8 +110,9 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 

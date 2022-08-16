@@ -36,8 +36,9 @@ module.exports.deleteCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -49,8 +50,9 @@ module.exports.createCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Неверный запрос'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -68,8 +70,9 @@ module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   .catch((err) => {
     if (err.name === 'CastError') {
       next(new BadRequestError('Неверный запрос'));
+    } else {
+      next(err);
     }
-    next(err);
   });
 
 module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
@@ -86,6 +89,7 @@ module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   .catch((err) => {
     if (err.name === 'CastError') {
       next(new BadRequestError('Неверный запрос'));
+    } else {
+      next(err);
     }
-    next(err);
   });
